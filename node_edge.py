@@ -19,7 +19,11 @@ class Edge:
         if self.end_socket is not None:
             self.end_socket.edge = self
 
-        self.grEdge = QDMGraphicsEdgeDirect(self) if edge_type == EDGE_TYPE_DIRECT else QDMGraphicsEdgeBezier(self) # depending on which line type you want to take
+        self.start_socket.edge = self
+        if self.end_socket is not None:
+            self.end_socket.edge = self
+
+        self.grEdge = QDMGraphicsEdgeDirect(self) if edge_type == EDGE_TYPE_DIRECT else QDMGraphicsEdgeBezier(self)
 
         self.updatePositions()
         if DEBUG: print("Edge: ", self.grEdge.posSource, "to", self.grEdge.posDestination)
@@ -37,8 +41,6 @@ class Edge:
             end_pos[0] += self.end_socket.node.grNode.pos().x()
             end_pos[1] += self.end_socket.node.grNode.pos().y()
             self.grEdge.setDestination(*end_pos)
-        if DEBUG: print(" SS:", self.start_socket)
-        if DEBUG: print(" ES:", self.end_socket)
         self.grEdge.update()
 
     def remove_from_sockets(self):
