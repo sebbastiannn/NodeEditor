@@ -7,7 +7,6 @@ EDGE_TYPE_BEZIER = 2    # index for curved connection
 DEBUG = False           # for True can check the debuging stuff in the console
 
 class Edge:
-
     def __init__(self, scene, start_socket, end_socket, edge_type=EDGE_TYPE_DIRECT):
 
         self.scene = scene
@@ -28,6 +27,10 @@ class Edge:
         self.updatePositions()
         if DEBUG: print("Edge: ", self.grEdge.posSource, "to", self.grEdge.posDestination)
         self.scene.grScene.addItem(self.grEdge)
+        self.scene.addEdge(self) #addEdge to scene for right click
+
+    def __str__(self):
+        return "<Edge %s..%s>" % (hex(id(self))[2:5], hex(id(self))[-3:])
 
     # when we are actually creating an edge we wil definitly created in our window
     # when we dont know the end Socket yet and drag around the line
@@ -41,6 +44,8 @@ class Edge:
             end_pos[0] += self.end_socket.node.grNode.pos().x()
             end_pos[1] += self.end_socket.node.grNode.pos().y()
             self.grEdge.setDestination(*end_pos)
+        else:
+            self.grEdge.setDestination(*source_pos)
         self.grEdge.update()
 
     def remove_from_sockets(self):
