@@ -1,10 +1,11 @@
 from node_graphics_edge import *
 
 
-EDGE_TYPE_DIRECT = 1    # index for direct connection
-EDGE_TYPE_BEZIER = 2    # index for curved connection
-
-DEBUG = False           # for True can check the debuging stuff in the console
+""" index of the edge connection type """
+EDGE_TYPE_DIRECT = 1
+EDGE_TYPE_BEZIER = 2
+""" for True can check the debuging stuff in the console """
+DEBUG = False
 
 class Edge:
     def __init__(self, scene, start_socket, end_socket, edge_type=EDGE_TYPE_DIRECT):
@@ -18,22 +19,19 @@ class Edge:
         if self.end_socket is not None:
             self.end_socket.edge = self
 
-        self.start_socket.edge = self
-        if self.end_socket is not None:
-            self.end_socket.edge = self
-
         self.grEdge = QDMGraphicsEdgeDirect(self) if edge_type == EDGE_TYPE_DIRECT else QDMGraphicsEdgeBezier(self)
 
         self.updatePositions()
         if DEBUG: print("Edge: ", self.grEdge.posSource, "to", self.grEdge.posDestination)
         self.scene.grScene.addItem(self.grEdge)
-        self.scene.addEdge(self) #addEdge to scene for right click
+        """ add Edge to the scene for right click check"""
+        self.scene.addEdge(self)
 
     def __str__(self):
         return "<Edge %s..%s>" % (hex(id(self))[2:5], hex(id(self))[-3:])
 
-    # when we are actually creating an edge we wil definitly created in our window
-    # when we dont know the end Socket yet and drag around the line
+
+
     def updatePositions(self):
         source_pos = self.start_socket.getSocketPosition()
         source_pos[0] += self.start_socket.node.grNode.pos().x()
@@ -48,6 +46,7 @@ class Edge:
             self.grEdge.setDestination(*source_pos)
         self.grEdge.update()
 
+
     def remove_from_sockets(self):
         if self.start_socket is not None:
             self.start_socket.edge = None
@@ -56,7 +55,7 @@ class Edge:
         self.end_socket = None
         self.start_socket = None
 
-    # remove all the contact from the edges
+    """ remove all the contact from the edges """
     def remove(self):
         self.remove_from_sockets()
         self.scene.grScene.removeItem(self.grEdge)

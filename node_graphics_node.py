@@ -9,23 +9,22 @@ class QDMGraphicsNode(QGraphicsItem):
         super().__init__(parent)
         self.node = node
         self.content = self.node.content
-        # set text color and font from TITLE
+        """ set text color and font from TITLE"""
         self._title_color = Qt.white
         self._title_font = QFont("Ubuntu", 10)
 
-        # Geometry of Node
+        """ Geometry of Node """
         self.width = 180
         self.height = 240
         self.edge_size = 10.0
         self.title_height = 24.0
         self._padding = 4.0
 
-        # frame colors (for selected and unselected)
-        self._pen_default = QPen(QColor("#7F000000")) # color=black
-        self._pen_selected = QPen(QColor("#FFFFA637")) # color=orange
-        # color for TITLE Background
+        """ frame colors (for selected and unselected) """
+        self._pen_default = QPen(QColor("#7F000000"))   # color=black
+        self._pen_selected = QPen(QColor("#FFFFA637"))  # color=orange
+        """ color for TITLE Background & the other Background """
         self._brush_title = QBrush(QColor("#FF313131"))
-        # color for rest Background
         self._brush_background = QBrush(QColor("#E3212121"))
 
         # init title
@@ -40,10 +39,14 @@ class QDMGraphicsNode(QGraphicsItem):
 
         self.initUI()
 
-    # for dragging around inside of the scene
+
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
-        self.node.updateConnectedEdges()
+
+        # optimize me! just update the selected nodes
+        for node in self.scene().scene.nodes:
+            if node.grNode.isSelected():
+                node.updateConnectedEdges()
 
 
     @property
@@ -53,7 +56,7 @@ class QDMGraphicsNode(QGraphicsItem):
         self._title = value
         self.title_item.setPlainText(self._title)
 
-    # define the bounding Rect for the node
+    """ define the bounding Rect for the node """
     def boundingRect(self):
         return QRectF(
             0,
@@ -63,11 +66,13 @@ class QDMGraphicsNode(QGraphicsItem):
         ).normalized()
 
     def initUI(self):
-        self.setFlag(QGraphicsItem.ItemIsSelectable)        # made node selectabele
-        self.setFlag(QGraphicsItem.ItemIsMovable)           # made node moveable
-    # init the title
+        self.setFlag(QGraphicsItem.ItemIsSelectable)    # made node selectabele
+        self.setFlag(QGraphicsItem.ItemIsMovable)       # made node moveable
+
+
     def initTitle(self):
         self.title_item = QGraphicsTextItem(self)
+        self.title_item.node = self.node
         self.title_item.setDefaultTextColor(self._title_color)
         self.title_item.setFont(self._title_font)
         self.title_item.setPos(self._padding, 0)
@@ -75,7 +80,7 @@ class QDMGraphicsNode(QGraphicsItem):
             self.width
             - 2 * self._padding
         )
-    # init Widget for content
+
     def initContent(self):
         self.grContent = QGraphicsProxyWidget(self)
         self.content.setGeometry(self.edge_size, self.title_height + self.edge_size,

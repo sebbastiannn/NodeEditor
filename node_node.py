@@ -15,7 +15,7 @@ class Node():
         self.scene.addNode(self)
         self.scene.grScene.addItem(self.grNode)
 
-        self.socket_spacing = 22 # spacing between sockets
+        self.socket_spacing = 22                # spacing between sockets
 
         # create socket for inputs and outputs
         self.inputs = []
@@ -37,8 +37,7 @@ class Node():
 
     @property
     def pos(self):
-        return self.grNode.pos()  # QPointF
-
+        return self.grNode.pos()        # QPointF
     def setPos(self, x, y):
         self.grNode.setPos(x, y)
 
@@ -48,16 +47,14 @@ class Node():
         if position in (LEFT_BOTTOM, RIGHT_BOTTOM):
             # start from bottom
             y = self.grNode.height - self.grNode.edge_size - self.grNode._padding - index * self.socket_spacing
-        else:
+        else :
             # start from top
             y = self.grNode.title_height + self.grNode._padding + self.grNode.edge_size + index * self.socket_spacing
 
         return [x, y]
 
-    # update the position of the edge and connect it with socket (for in and output)
+
     def updateConnectedEdges(self):
         for socket in self.inputs + self.outputs:
             if socket.hasEdge():
                 socket.edge.updatePositions()
-
-

@@ -2,25 +2,25 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
+
 class QDMGraphicsSocket(QGraphicsItem):
     def __init__(self, socket, socket_type=1):
         self.socket = socket
         super().__init__(socket.node.grNode)
 
         self.radius = 6.0           # radius of the circle from the socket
-        self.outline_width = 1.0
-        #choose index for color
+        self.outline_width = 1.0    # width of the Outlines of the circle
+        # color of the circles
         self._colors = [
-            QColor("#FFFF7700"), #Orange
-            QColor("#FF52e220"), #Grün
-            QColor("#FF0056a6"), #Blau
-            QColor("#FFa86db1"), #Lila
-            QColor("#FFb54747"), #Rot
-            QColor("#FFdbe220"), #Gelb
-            ]
-
+            QColor("#FFFF7700"),    # orange
+            QColor("#FF52e220"),    # green
+            QColor("#FF0056a6"),    # blue
+            QColor("#FFa86db1"),    # purple
+            QColor("#FFb54747"),    # red
+            QColor("#FFdbe220"),    # yellow
+        ]
         self._color_background = self._colors[socket_type]
-        self._color_outline = QColor("#FF000000")
+        self._color_outline = QColor("#FF000000")   # black for the outlines
 
         self._pen = QPen(self._color_outline)
         self._pen.setWidthF(self.outline_width)
@@ -39,6 +39,3 @@ class QDMGraphicsSocket(QGraphicsItem):
             2 * (self.radius + self.outline_width),
             2 * (self.radius + self.outline_width),
         )
-
-
-

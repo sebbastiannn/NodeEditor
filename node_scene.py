@@ -1,8 +1,9 @@
 from node_graphics_scene import QDMGraphicsScene
 
-class Scene:
+
+class Scene():
     def __init__(self):
-        self.node = []
+        self.nodes = []
         self.edges = []
 
         self.scene_width = 64000
@@ -14,15 +15,15 @@ class Scene:
         self.grScene = QDMGraphicsScene(self)
         self.grScene.setGrScene(self.scene_width, self.scene_height)
 
-
     def addNode(self, node):
-        self.node.append(node)
+        self.nodes.append(node)
 
     def addEdge(self, edge):
-        self.node.append(edge)
+        self.edges.append(edge)
 
-    def removeNote(self, node):
-        self.node.remove(node)
+
+    def removeNode(self, node):
+        self.nodes.remove(node)
 
     def removeEdge(self, edge):
-        self.node.remove(edge)
+        self.edges.remove(edge)

@@ -2,10 +2,10 @@ from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
+
 from node_graphics_socket import QDMGraphicsSocket
 from node_graphics_edge import QDMGraphicsEdge
 from node_edge import Edge, EDGE_TYPE_BEZIER
-
 
 
 MODE_NOOP = 1
@@ -13,7 +13,8 @@ MODE_EDGE_DRAG = 2
 
 EDGE_DRAG_START_THRESHOLD = 10
 
-DEBUG = False
+
+DEBUG = True
 
 
 class QDMGraphicsView(QGraphicsView):
@@ -33,19 +34,21 @@ class QDMGraphicsView(QGraphicsView):
         self.zoomStep = 1
         self.zoomRange = [0, 10]
 
-    #  smooth out the Pixels in the Lines, Text etc.
-    def initUI(self):
-        self.setRenderHints(QPainter.Antialiasing | QPainter.HighQualityAntialiasing | QPainter.TextAntialiasing | QPainter.SmoothPixmapTransform)
-        # Fix the problem that the Lines under the Rect getting smaller
-        self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
 
+    def initUI(self):
+        """ smooth out the Pixels in the Lines, Text etc. """
+        self.setRenderHints(QPainter.Antialiasing | QPainter.HighQualityAntialiasing |
+                            QPainter.TextAntialiasing | QPainter.SmoothPixmapTransform)
+
+        self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)    # Fix the problem that the Lines under the Rect getting smaller
         # hide scrollbar
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # set the Center under the Mouse for scrolling in/out
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.setDragMode(QGraphicsView.RubberBandDrag)
 
-# Drag around
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MiddleButton:
             self.middleMouseButtonPress(event)
@@ -66,7 +69,7 @@ class QDMGraphicsView(QGraphicsView):
         else:
             super().mouseReleaseEvent(event)
 
-
+    """ Drag around """
     def middleMouseButtonPress(self, event):
         releaseEvent = QMouseEvent(QEvent.MouseButtonRelease, event.localPos(), event.screenPos(),
                                    Qt.LeftButton, Qt.NoButton, event.modifiers())
@@ -92,7 +95,20 @@ class QDMGraphicsView(QGraphicsView):
         # we store the position of last LMB click
         self.last_lmb_click_scene_pos = self.mapToScene(event.pos())
 
+        if DEBUG: print("LMB Click on", item, self.debug_modifiers(event))
+
         # logic
+        if hasattr(item, "node") or isinstance(item, QDMGraphicsEdge) or item is None:
+            if event.modifiers() & Qt.ShiftModifier:
+                if DEBUG: print("LMB + Shift on", item)
+                event.ignore()
+                fakeEvent = QMouseEvent(QEvent.MouseButtonPress, event.localPos(), event.screenPos(),
+                                        Qt.LeftButton, event.buttons() | Qt.LeftButton,
+                                        event.modifiers() | Qt.ControlModifier)
+                super().mousePressEvent(fakeEvent)
+                return
+
+
         if type(item) is QDMGraphicsSocket:
             if self.mode == MODE_NOOP:
                 self.mode = MODE_EDGE_DRAG
@@ -103,17 +119,29 @@ class QDMGraphicsView(QGraphicsView):
             res = self.edgeDragEnd(item)
             if res: return
 
+
         super().mousePressEvent(event)
+
 
     def leftMouseButtonRelease(self, event):
         # get item which we release mouse button on
         item = self.getItemAtClick(event)
 
         # logic
+        if hasattr(item, "node") or isinstance(item, QDMGraphicsEdge) or item is None:
+            if event.modifiers() & Qt.ShiftModifier:
+                event.ignore()
+                fakeEvent = QMouseEvent(event.type(), event.localPos(), event.screenPos(),
+                                        Qt.LeftButton, Qt.NoButton,
+                                        event.modifiers() | Qt.ControlModifier)
+                super().mouseReleaseEvent(fakeEvent)
+                return
+
         if self.mode == MODE_EDGE_DRAG:
             if self.distanceBetweenClickAndReleaseIsOff(event):
                 res = self.edgeDragEnd(item)
                 if res: return
+
 
         super().mouseReleaseEvent(event)
 
@@ -137,7 +165,6 @@ class QDMGraphicsView(QGraphicsView):
                 for edge in self.grScene.scene.edges: print('    ', edge)
 
 
-
     def rightMouseButtonRelease(self, event):
         super().mouseReleaseEvent(event)
 
@@ -150,11 +177,20 @@ class QDMGraphicsView(QGraphicsView):
 
         super().mouseMoveEvent(event)
 
+
+    def debug_modifiers(self, event):
+        out = "MODS: "
+        if event.modifiers() & Qt.ShiftModifier: out += "SHIFT "
+        if event.modifiers() & Qt.ControlModifier: out += "CTRL "
+        if event.modifiers() & Qt.AltModifier: out += "ALT "
+        return out
+
     def getItemAtClick(self, event):
         """ return the object on which we've clicked/release mouse button """
         pos = event.pos()
         obj = self.itemAt(pos)
         return obj
+
 
     def edgeDragStart(self, item):
         if DEBUG: print('View::edgeDragStart ~ Start dragging edge')
@@ -163,6 +199,7 @@ class QDMGraphicsView(QGraphicsView):
         self.last_start_socket = item.socket
         self.dragEdge = Edge(self.grScene.scene, item.socket, None, EDGE_TYPE_BEZIER)
         if DEBUG: print('View::edgeDragStart ~   dragEdge:', self.dragEdge)
+
 
     def edgeDragEnd(self, item):
         """ return True if skip the rest of the code """
@@ -194,16 +231,17 @@ class QDMGraphicsView(QGraphicsView):
         return False
 
 
-
     def distanceBetweenClickAndReleaseIsOff(self, event):
         """ measures if we are too far from the last LMB click scene position """
         new_lmb_release_scene_pos = self.mapToScene(event.pos())
         dist_scene = new_lmb_release_scene_pos - self.last_lmb_click_scene_pos
-        edge_drag_threshold_sq = EDGE_DRAG_START_THRESHOLD * EDGE_DRAG_START_THRESHOLD
-        return (dist_scene.x() * dist_scene.x() + dist_scene.y() * dist_scene.y()) > edge_drag_threshold_sq
+        edge_drag_threshold_sq = EDGE_DRAG_START_THRESHOLD*EDGE_DRAG_START_THRESHOLD
+        return (dist_scene.x()*dist_scene.x() + dist_scene.y()*dist_scene.y()) > edge_drag_threshold_sq
+
+
 
     def wheelEvent(self, event):
-        # calculate our zoom factor
+        # calculate our zoom Factor
         zoomOutFactor = 1 / self.zoomInFactor
 
         # calculate zoom
@@ -214,6 +252,7 @@ class QDMGraphicsView(QGraphicsView):
             zoomFactor = zoomOutFactor
             self.zoom -= self.zoomStep
 
+
         clamped = False
         if self.zoom < self.zoomRange[0]: self.zoom, clamped = self.zoomRange[0], True
         if self.zoom > self.zoomRange[1]: self.zoom, clamped = self.zoomRange[1], True
@@ -221,5 +260,3 @@ class QDMGraphicsView(QGraphicsView):
         # set scene scale
         if not clamped or self.zoomClamp is False:
             self.scale(zoomFactor, zoomFactor)
-
-

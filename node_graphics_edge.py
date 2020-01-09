@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
+
 from node_socket import *
 
 
@@ -17,7 +18,7 @@ class QDMGraphicsEdge(QGraphicsPathItem):
 
         self._color = QColor("#001000")                 # color black for the line/edge
         self._color_selected = QColor("#00ff00")        # color green for the selected line
-        self._pen = QPen(self._color)                   # select the pen
+        self._pen = QPen(self._color)
         self._pen_selected = QPen(self._color_selected)
         self._pen_dragging = QPen(self._color)
         self._pen_dragging.setStyle(Qt.DashLine)
@@ -27,7 +28,7 @@ class QDMGraphicsEdge(QGraphicsPathItem):
 
         self.setFlag(QGraphicsItem.ItemIsSelectable)    # make the line selectable
 
-        self.setZValue(-1)                              # Lines one level into the background -> lines are behind socket
+        self.setZValue(-1)      # Lines one level into the background -> lines are behind socket
 
         self.posSource = [0, 0]
         self.posDestination = [200, 100]
@@ -37,6 +38,7 @@ class QDMGraphicsEdge(QGraphicsPathItem):
 
     def setDestination(self, x, y):
         self.posDestination = [x, y]
+
 
     def paint(self, painter, QStyleOptionGraphicsItem, widget=None):
         self.updatePath()
@@ -52,15 +54,14 @@ class QDMGraphicsEdge(QGraphicsPathItem):
         """ Will handle drawing QPainterPath from Point A to B """
         raise NotImplemented("This method has to be overriden in a child class")
 
-
-# class for the direct line
+""" class for the direct line """
 class QDMGraphicsEdgeDirect(QDMGraphicsEdge):
     def updatePath(self):
         path = QPainterPath(QPointF(self.posSource[0], self.posSource[1]))
         path.lineTo(self.posDestination[0], self.posDestination[1])
         self.setPath(path)
 
-    # class for the curved line
+""" class for the curved  line """
 class QDMGraphicsEdgeBezier(QDMGraphicsEdge):
     def updatePath(self):
         s = self.posSource
@@ -94,11 +95,3 @@ class QDMGraphicsEdgeBezier(QDMGraphicsEdge):
         path = QPainterPath(QPointF(self.posSource[0], self.posSource[1]))
         path.cubicTo( s[0] + cpx_s, s[1] + cpy_s, d[0] + cpx_d, d[1] + cpy_d, self.posDestination[0], self.posDestination[1])
         self.setPath(path)
-
-
-
-
-
-
-
-
