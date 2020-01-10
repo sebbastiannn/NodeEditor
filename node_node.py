@@ -2,6 +2,7 @@ from node_graphics_node import QDMGraphicsNode
 from node_content_widget import QDMNodeContentWidget
 from node_socket import *
 
+DEBUG = False
 
 class Node():
     def __init__(self, scene, title="Undefined Node", inputs=[], outputs=[]):
@@ -9,7 +10,7 @@ class Node():
 
         self.title = title
 
-        self.content = QDMNodeContentWidget()
+        self.content = QDMNodeContentWidget(self)
         self.grNode = QDMGraphicsNode(self)
 
         self.scene.addNode(self)
@@ -32,6 +33,7 @@ class Node():
             counter += 1
             self.outputs.append(socket)
 
+    """ overwrite the DEBUG names so only last 3 numbers """
     def __str__(self):
         return "<Node %s..%s>" % (hex(id(self))[2:5], hex(id(self))[-3:])
 
@@ -58,3 +60,18 @@ class Node():
         for socket in self.inputs + self.outputs:
             if socket.hasEdge():
                 socket.edge.updatePositions()
+
+    def remove(self):
+        if DEBUG: print(">Removing Node", self)
+        if DEBUG: print(" - remove all edges from sockets")
+        for socket in (self.inputs+self.outputs):
+            if socket.hasEdge():
+                if DEBUG: print("   - removing socket:", socket, "edge", socket.edge)
+                socket.edge.remove()
+        if DEBUG: print(" - remove grNode")
+        self.scene.grScene.removeItem(self.grNode)
+        self.grNode = None
+        if DEBUG: print(" - remove node from the scene")
+        self.scene.removeNode(self)
+        if DEBUG: print(" - everthing was done")
+

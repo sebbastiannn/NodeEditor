@@ -22,11 +22,11 @@ class Edge:
         self.grEdge = QDMGraphicsEdgeDirect(self) if edge_type == EDGE_TYPE_DIRECT else QDMGraphicsEdgeBezier(self)
 
         self.updatePositions()
-        if DEBUG: print("Edge: ", self.grEdge.posSource, "to", self.grEdge.posDestination)
         self.scene.grScene.addItem(self.grEdge)
         """ add Edge to the scene for right click check"""
         self.scene.addEdge(self)
 
+    """ overwrite the DEBUG names so only last 3 numbers """
     def __str__(self):
         return "<Edge %s..%s>" % (hex(id(self))[2:5], hex(id(self))[-3:])
 
@@ -57,7 +57,15 @@ class Edge:
 
     """ remove all the contact from the edges """
     def remove(self):
+        if DEBUG: print(">Removing Edge", self)
+        if DEBUG: print(" - remove edge from all sockets")
         self.remove_from_sockets()
+        if DEBUG: print(" - remove grEdge")
         self.scene.grScene.removeItem(self.grEdge)
         self.grEdge = None
-        self.scene.removeEdge(self)
+        if DEBUG: print(" - remove edge from scene")
+        try:
+            self.scene.removeEdge(self)             # when we remove the node the edge will be removed to
+        except ValueError:                          # when its again removed and not in the list we get an exception
+            pass
+        if DEBUG: print(" - everthing done")
