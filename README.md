@@ -1,4 +1,4 @@
-# NoteEditor
+# NodeEditor
 how to use me
 
 # Nodes
